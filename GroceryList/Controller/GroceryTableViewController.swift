@@ -70,43 +70,30 @@ class GroceryTableViewController: UITableViewController {
         
     }
     
-    @IBAction func deleteAll(_ sender: Any) {
-        
-        let alertController = UIAlertController(title: "Delete All", message: "Would you like to remove everything?", preferredStyle: .alert)
-        
-        let addActionButton = UIAlertAction(title: "Delete", style: .default) { alertAction in
-            
-            guard let appDelegate = UIApplication.shared.delegate as? AppDelegate else { return }
-            let managedContext = appDelegate.persistentContainer.viewContext
-            let fetchRequest: NSFetchRequest<NSFetchRequestResult>
-            fetchRequest = NSFetchRequest(entityName: "Grocery")
-            let deleteRequest = NSBatchDeleteRequest(
-                fetchRequest: fetchRequest
-            )
-            deleteRequest.resultType = .resultTypeObjectIDs
-            
+    func deleteAllData() {
+            let fetchRequest = NSFetchRequest<NSFetchRequestResult>(entityName: "Grocery")
+            let request: NSBatchDeleteRequest = NSBatchDeleteRequest(fetchRequest: fetchRequest)
             do {
-                let context = try managedContext.execute(deleteRequest)
-                    as? NSBatchDeleteResult
-                guard let deleteResult = context?.result
-                        as? [NSManagedObjectID]
-                else {
-                    return
-                }
-                
-                let deletedObjects: [AnyHashable: Any] = [
-                    NSDeletedObjectsKey: deleteResult]
-                
-                NSManagedObjectContext.mergeChanges(
-                    fromRemoteContextSave: deletedObjects, into: [])
-            } catch {
-                print("Items deleted!")
+                try manageObjectContext?.execute(request)
+                saveData()
+            } catch let error {
+                print(error.localizedDescription)
             }
         }
+    
+    @IBAction func deleteAll(_ sender: Any) {
+        
+        let alertController = UIAlertController(title: "Delete All Grocery Item", message: "Are you sure you want to delete them all?", preferredStyle: .actionSheet)
+        let addActionButton = UIAlertAction(title: "Delete", style: .default) { alertAction in
+            self.deleteAllData()
+            
+        }//addAction
         
         let cancelButton = UIAlertAction(title: "Cancel", style: .destructive, handler: nil)
+        
         alertController.addAction(addActionButton)
         alertController.addAction(cancelButton)
+        
         present(alertController, animated: true, completion: nil)
     }
     
